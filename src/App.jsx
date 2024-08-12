@@ -3,19 +3,22 @@ import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import { useRef } from 'react'
 import { PerspectiveCamera, OrbitControls, Stars } from '@react-three/drei'
 import { Lensflare, LensflareElement } from "three/examples/jsm/objects/Lensflare.js";
+import Box from '@mui/material/Box';
+import Slider from '@mui/material/Slider';
 import * as THREE from 'three';
 import './App.css'
 
+let elapsedTime = 0;
 
 function Earth({position, size}) {
   const earthTexture = useLoader(TextureLoader, 'earth.jpg')
-  const ref = useRef()
+  const earthRef = useRef()
   useFrame((state, delta) => {
-    ref.current.rotation.y += delta * 1/2
+    earthRef.current.rotation.y = elapsedTime
   })
 
   return (
-    <mesh position={position} ref={ref}>
+    <mesh position={position} ref={earthRef}>
         <sphereGeometry args={size}/>
         <meshStandardMaterial map={earthTexture}/>
     </mesh>
@@ -24,13 +27,16 @@ function Earth({position, size}) {
 
 function Moon({position, size}) {
   const moonTexture = useLoader(TextureLoader, 'moon.jpg')
-  const ref = useRef()
+  const moonRef = useRef()
+  
   useFrame((state, delta) => {
-    ref.current.rotation.y += delta * 1/2
+    elapsedTime += delta
+    moonRef.current.rotation.y = elapsedTime 
+    moonRef.current.position.set(-Math.cos(elapsedTime) * 2, 0, Math.sin(elapsedTime) * 2);
   })
   
   return (
-    <mesh position={position} ref={ref}>
+    <mesh position={position} ref={moonRef}>
         <sphereGeometry args={size}/>
         <meshStandardMaterial map={moonTexture}/>
     </mesh>
@@ -38,14 +44,14 @@ function Moon({position, size}) {
 }
 
 function Tide({position}) {
-  const ref = useRef()
+  const tideRef = useRef()
   useFrame((state, delta) => {
-    //ref.current.rotation.y += delta * 1/2
+    tideRef.current.rotation.y = elapsedTime;
     //ref.current.scale.x += delta * 1/2
   })
   
   return (
-    <mesh position={position} scale={[1.5, 1, 1]} ref={ref}>
+    <mesh position={position} scale={[1.5, 1, 1]} ref={tideRef}>
         <sphereGeometry args={[1.001, 128, 128]}/>
         <meshPhongMaterial color={0x1E3B75} transparent={true} opacity={0.7}/>
     </mesh>
@@ -62,6 +68,7 @@ const AddLight = ({ h, s, l, x, y, z }) => {
   const hexangle = textureLoader.load ('hexangle.png')
 
   const light = new THREE.PointLight( 0xffffff, 1.5, 2000, 0 );
+  light.position.set(500, 0, 0)
   light.color.setHSL( h, s, l );
   
   const lensflare = new Lensflare();
@@ -80,8 +87,6 @@ return (
 };
 
 
-
-
 function App() {
   
   return (
@@ -93,7 +98,7 @@ function App() {
       {/* Luzes da cena */}
       <ambientLight intensity={2.3} color={0xf5ef38}/>
       <directionalLight color={new THREE.Color().setHSL(0.1, 0.2, 0.2)} intensity={12} position={[1, 0, 0]  }/>
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={3} />
+      <Stars radius={50} depth={50} count={5000} factor={4} saturation={0} fade speed={3} />
 
       
       {/* Lensflare */}
