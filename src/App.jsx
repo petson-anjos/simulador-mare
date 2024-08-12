@@ -12,9 +12,6 @@ import '@fontsource/roboto/400.css';
 import * as THREE from 'three';
 import './App.css'
 
-
-
-
 function BoxSlider({onToggle}) {
   return (
     <Box alignItems="center" 
@@ -34,11 +31,7 @@ function BoxSlider({onToggle}) {
 
       <SliderValue name ="Distância da Lua" defaultValue={10}/>
       <SliderValue name ="Massa da Lua" defaultValue={50}/>
-      {/* <PauseButton />
-      <PlayButton /> */}
       <PlayPauseButton onToggle={onToggle}/>
-      
-
     </Box>
   )
 }
@@ -101,24 +94,6 @@ function PlayPauseButton({ onToggle }) {
   );
 }
 
-
-function PlayButton() {
-  return (
-    <IconButton aria-label="play" size="small">
-      <PlayArrowIcon fontSize="large" style={{ color: 'white' }}/>
-    </IconButton>
-  )
-}
-
-function PauseButton() {
-  return (
-    <IconButton aria-label="pause" size="small">
-      <PauseIcon fontSize="large" style={{ color: 'white'}} />
-    </IconButton>
-  )
-}
-
-let elapsedTime = 0;
 
 function Earth({ position, size, isSimulating }) {
   const earthTexture = useLoader(TextureLoader, 'earth.jpg');
