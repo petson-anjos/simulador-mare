@@ -37,14 +37,13 @@ function Moon({position, size}) {
 
 function Tide({position}) {
   const ref = useRef()
-  ref.current.scale.x = 1.5
   useFrame((state, delta) => {
     //ref.current.rotation.y += delta * 1/2
     //ref.current.scale.x += delta * 1/2
   })
   
   return (
-    <mesh position={position} ref={ref}>
+    <mesh position={position} scale={[1.5, 1, 1]} ref={ref}>
         <sphereGeometry args={[1.001, 128, 128]}/>
         <meshPhongMaterial color={0x1E3B75} transparent={true} opacity={0.7}/>
     </mesh>
