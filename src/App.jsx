@@ -15,7 +15,7 @@ import './App.css'
 
 
 
-function BoxSlider() {
+function BoxSlider({onToggle}) {
   return (
     <Box alignItems="center" 
     sx={{ 
@@ -34,8 +34,9 @@ function BoxSlider() {
 
       <SliderValue name ="Distância da Lua" defaultValue={10}/>
       <SliderValue name ="Massa da Lua" defaultValue={50}/>
-      <PauseButton />
-      <PlayButton />
+      {/* <PauseButton />
+      <PlayButton /> */}
+      <PlayPauseButton onToggle={onToggle}/>
       
 
     </Box>
@@ -68,6 +69,39 @@ function SliderValue({name, defaultValue}) {
   )
 }
 
+function PlayPauseButton({ onToggle }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const intervalRef = useRef(null);
+
+  const handleButtonClick = () => {
+    if (isPlaying) {
+      clearInterval(intervalRef.current);
+    } else {
+      intervalRef.current = setInterval(() => {
+        setElapsedTime(prevTime => prevTime + 1);
+      }, 1000);
+    }
+    setIsPlaying(!isPlaying);
+    onToggle(!isPlaying);
+  };
+
+  useEffect(() => {
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  return (
+    <IconButton 
+      aria-label={isPlaying ? 'pause' : 'play'} 
+      size="small" 
+      onClick={handleButtonClick}
+    >
+      {isPlaying ? <PauseIcon fontSize="large" style={{ color: 'white' }} /> : <PlayArrowIcon fontSize="large" style={{ color: 'white' }}  />}
+    </IconButton>
+  );
+}
+
+
 function PlayButton() {
   return (
     <IconButton aria-label="play" size="small">
@@ -86,52 +120,65 @@ function PauseButton() {
 
 let elapsedTime = 0;
 
-function Earth({position, size}) {
-  const earthTexture = useLoader(TextureLoader, 'earth.jpg')
-  const earthRef = useRef()
+function Earth({ position, size, isSimulating }) {
+  const earthTexture = useLoader(TextureLoader, 'earth.jpg');
+  const earthRef = useRef();
+  let elapsedTime = useRef(0);
+
   useFrame((state, delta) => {
-    earthRef.current.rotation.y = elapsedTime
-  })
+    if (!isSimulating) {
+      elapsedTime.current += delta;
+      earthRef.current.rotation.y = elapsedTime.current;
+    }
+  });
 
   return (
     <mesh position={position} ref={earthRef}>
-        <sphereGeometry args={size}/>
-        <meshStandardMaterial map={earthTexture}/>
+      <sphereGeometry args={size} />
+      <meshStandardMaterial map={earthTexture} />
     </mesh>
-  )
+  );
 }
 
-function Moon({position, size}) {
-  const moonTexture = useLoader(TextureLoader, 'moon.jpg')
-  const moonRef = useRef()
-  
+function Moon({ position, size, isSimulating }) {
+  const moonTexture = useLoader(TextureLoader, 'moon.jpg');
+  const moonRef = useRef();
+  let elapsedTime = useRef(0);
+
   useFrame((state, delta) => {
-    elapsedTime += delta
-    moonRef.current.rotation.y = elapsedTime 
-    moonRef.current.position.set(-Math.cos(elapsedTime) * 2, 0, Math.sin(elapsedTime) * 2);
-  })
-  
+    if (!isSimulating) {
+      elapsedTime.current += delta;
+      moonRef.current.rotation.y = elapsedTime.current;
+      moonRef.current.position.set(-Math.cos(elapsedTime.current) * 2, 0, Math.sin(elapsedTime.current) * 2);
+    }
+  });
+
   return (
     <mesh position={position} ref={moonRef}>
-        <sphereGeometry args={size}/>
-        <meshStandardMaterial map={moonTexture}/>
+      <sphereGeometry args={size} />
+      <meshStandardMaterial map={moonTexture} />
     </mesh>
-  )
+  );
 }
 
-function Tide({position}) {
-  const tideRef = useRef()
+function Tide({ position, isSimulating }) {
+  const tideRef = useRef();
+  let elapsedTime = useRef(0);
+
   useFrame((state, delta) => {
-    tideRef.current.rotation.y = elapsedTime;
-    //ref.current.scale.x += delta * 1/2
-  })
-  
+    if (!isSimulating) {
+      elapsedTime.current += delta;
+      tideRef.current.rotation.y = elapsedTime.current;
+      // tideRef.current.scale.x += delta * 1/2
+    }
+  });
+
   return (
     <mesh position={position} scale={[1.5, 1, 1]} ref={tideRef}>
-        <sphereGeometry args={[1.001, 128, 128]}/>
-        <meshPhongMaterial color={0x1E3B75} transparent={true} opacity={0.7}/>
+      <sphereGeometry args={[1.001, 128, 128]} />
+      <meshPhongMaterial color={0x1E3B75} transparent opacity={0.7} />
     </mesh>
-  )
+  );
 }
 
 
@@ -164,10 +211,14 @@ return (
 
 
 function App() {
-  
+  const [isSimulating, setIsSimulating] = useState(false);
+  const toggleSimulation = (isPlaying) => {
+    setIsSimulating(isPlaying);
+  }
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-    <BoxSlider />
+    <BoxSlider onToggle={toggleSimulation}/>
     <Canvas>
       {/* Camera e Controles */}
       <PerspectiveCamera makeDefault fov={40} position={[0, 0, 10]} />
@@ -184,9 +235,9 @@ function App() {
       
 
       {/* Terra e Lua*/}
-      <Earth position={[0,0,0]} size={[1, 128, 128]}/>
-      <Moon position={[3, 0, 0]} size={[1/3, 128, 128]}/>
-      <Tide position={[0,0,0]}/>
+      <Earth position={[0,0,0]} size={[1, 128, 128]}  isSimulating={isSimulating}/>
+      <Moon position={[3, 0, 0]} size={[1/3, 128, 128]} isSimulating={isSimulating}/>
+      <Tide position={[0,0,0]} isSimulating={isSimulating}/>
 
     </Canvas>  
     </div>
