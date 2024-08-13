@@ -219,8 +219,8 @@ function App() {
       onMassChange={handleMassChange}/>
     <Canvas>
       {/* Camera e Controles */}
-      <PerspectiveCamera makeDefault fov={40} position={[0, 0, 10]} />
-      <OrbitControls makeDefault minDistance={5} maxDistance={30} />
+      <PerspectiveCamera makeDefault fov={60} position={[0, 0, 12]} />
+      <OrbitControls makeDefault minDistance={5} maxDistance={30} enablePan={false} />
       
       {/* Luzes da cena */}
       <ambientLight intensity={2.3} color={0xf5ef38}/>

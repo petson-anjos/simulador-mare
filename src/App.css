@@ -15,14 +15,14 @@ body {
 
 @media only screen and (max-width: 768px) {
   .box-slider {
-    width: 50%;
-    height: 250px; 
+    width: 45%;
+    height: 200px; 
   }
 }
 
 @media only screen and (max-width: 480px) {
   .box-slider {
-    width: 40%;
+    width: 35%;
     height: 200px; 
   }
 }
