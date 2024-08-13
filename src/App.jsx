@@ -15,7 +15,7 @@ import './App.css'
 function BoxSlider({onToggle, distance, mass, onDistanceChange, onMassChange }) {
   
   return (
-    <Box alignItems="center" 
+    <Box className="box-slider" alignItems="center" 
     sx={{ 
       padding: 2, 
       background: 'rgba(33, 33, 33, 0.65)',
