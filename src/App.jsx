@@ -15,7 +15,8 @@ import './App.css'
 
 
 
-function BoxSlider({onToggle}) {
+function BoxSlider({onToggle, distance, mass, onDistanceChange, onMassChange }) {
+  
   return (
     <Box alignItems="center" 
     sx={{ 
@@ -32,8 +33,8 @@ function BoxSlider({onToggle}) {
       flexDirection: 'column',
       justifyContent: 'center'}}>
 
-      <SliderValue name ="Distância da Lua" defaultValue={10}/>
-      <SliderValue name ="Massa da Lua" defaultValue={50}/>
+      <SliderValue name="Distância da Lua" value={distance} onChange={onDistanceChange} min={3} max={12} step={0.005}/>
+      <SliderValue name="Massa da Lua" value={mass} onChange={onMassChange} min={1} max={500} step={1}/>
       {/* <PauseButton />
       <PlayButton /> */}
       <PlayPauseButton onToggle={onToggle}/>
@@ -43,15 +44,19 @@ function BoxSlider({onToggle}) {
   )
 }
 
-function SliderValue({name, defaultValue}) {
+function SliderValue({name, value, onChange, min, max, step}) {
   return (
     <Box sx={{ color: 'white', width: 250, position: 'relative', zIndex: 2}}>
       <div style={{ textAlign: 'center', fontSize: 24, fontFamily: 'Roboto, "Times New Roman"'}}>{name}</div>
       <Slider
           size="small"
-          defaultValue={defaultValue}
+          value={value}
           aria-label="Small"
           valueLabelDisplay="auto"
+          step={step}
+          min={min}
+          max={max}
+          onChange={onChange}
           sx={{
             color: 'white',
             '& .MuiSlider-thumb': {
@@ -96,29 +101,10 @@ function PlayPauseButton({ onToggle }) {
       size="small" 
       onClick={handleButtonClick}
     >
-      {isPlaying ? <PauseIcon fontSize="large" style={{ color: 'white' }} /> : <PlayArrowIcon fontSize="large" style={{ color: 'white' }}  />}
+      {isPlaying ? <PlayArrowIcon fontSize="large" style={{ color: 'white' }} /> : <PauseIcon fontSize="large" style={{ color: 'white' }}  />}
     </IconButton>
   );
 }
-
-
-function PlayButton() {
-  return (
-    <IconButton aria-label="play" size="small">
-      <PlayArrowIcon fontSize="large" style={{ color: 'white' }}/>
-    </IconButton>
-  )
-}
-
-function PauseButton() {
-  return (
-    <IconButton aria-label="pause" size="small">
-      <PauseIcon fontSize="large" style={{ color: 'white'}} />
-    </IconButton>
-  )
-}
-
-let elapsedTime = 0;
 
 function Earth({ position, size, isSimulating }) {
   const earthTexture = useLoader(TextureLoader, 'earth.jpg');
@@ -140,7 +126,7 @@ function Earth({ position, size, isSimulating }) {
   );
 }
 
-function Moon({ position, size, isSimulating }) {
+function Moon({ position, size, isSimulating, distance}) {
   const moonTexture = useLoader(TextureLoader, 'moon.jpg');
   const moonRef = useRef();
   let elapsedTime = useRef(0);
@@ -149,8 +135,11 @@ function Moon({ position, size, isSimulating }) {
     if (!isSimulating) {
       elapsedTime.current += delta;
       moonRef.current.rotation.y = elapsedTime.current;
-      moonRef.current.position.set(-Math.cos(elapsedTime.current) * 2, 0, Math.sin(elapsedTime.current) * 2);
     }
+    const earthPosition = new THREE.Vector3(0, 0, 0);
+    const newX = earthPosition.x + distance * Math.cos(-elapsedTime.current);
+    const newZ = earthPosition.z + distance * Math.sin(-elapsedTime.current);
+    moonRef.current.position.set(newX, position[1], newZ);
   });
 
   return (
@@ -161,7 +150,7 @@ function Moon({ position, size, isSimulating }) {
   );
 }
 
-function Tide({ position, isSimulating }) {
+function Tide({ position, isSimulating, distance, mass }) {
   const tideRef = useRef();
   let elapsedTime = useRef(0);
 
@@ -169,8 +158,8 @@ function Tide({ position, isSimulating }) {
     if (!isSimulating) {
       elapsedTime.current += delta;
       tideRef.current.rotation.y = elapsedTime.current;
-      // tideRef.current.scale.x += delta * 1/2
     }
+    tideRef.current.scale.x = 1 + (mass * 0.003) / (distance * 0.5);
   });
 
   return (
@@ -212,13 +201,29 @@ return (
 
 function App() {
   const [isSimulating, setIsSimulating] = useState(false);
+  const [distance, setDistance] = useState(5);
+  const [mass, setMass] = useState(250);
+
   const toggleSimulation = (isPlaying) => {
     setIsSimulating(isPlaying);
-  }
+  };
+
+  const handleDistanceChange = (event, newValue) => {
+    setDistance(newValue);
+  };
+
+  const handleMassChange = (event, newValue) => {
+    setMass(newValue);
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-    <BoxSlider onToggle={toggleSimulation}/>
+    <BoxSlider 
+      onToggle={toggleSimulation}
+      distance={distance}
+      mass={mass}
+      onDistanceChange={handleDistanceChange}
+      onMassChange={handleMassChange}/>
     <Canvas>
       {/* Camera e Controles */}
       <PerspectiveCamera makeDefault fov={40} position={[0, 0, 10]} />
@@ -236,8 +241,8 @@ function App() {
 
       {/* Terra e Lua*/}
       <Earth position={[0,0,0]} size={[1, 128, 128]}  isSimulating={isSimulating}/>
-      <Moon position={[3, 0, 0]} size={[1/3, 128, 128]} isSimulating={isSimulating}/>
-      <Tide position={[0,0,0]} isSimulating={isSimulating}/>
+      <Moon position={[distance, 0, 0]} size={[1/3, 128, 128]} isSimulating={isSimulating} distance={distance}/>
+      <Tide position={[0,0,0]} isSimulating={isSimulating} distance={distance} mass={mass} />
 
     </Canvas>  
     </div>
