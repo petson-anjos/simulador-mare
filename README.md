@@ -2,7 +2,7 @@
 
 Esse projeto foi feito utilizando ReactJS e ThreeJS. Tem o objetivo de ser uma maneira interativa de visualizar os efeitos da maré entre a Terra e a Lua.
 
-Link para acessar o site: <https://github.com/petson-anjos/simulador-mare>
+Link para acessar o site: <https://petson-anjos.github.io/simulador-mare/>
 
 # Execução
 
